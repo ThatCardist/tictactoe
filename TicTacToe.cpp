@@ -28,7 +28,7 @@ class Game {
 private:
     int computerScore = 0;
     int playerScore = 0;
-    string movesMade[9] = {"N","N", "N", "N", "N", "N", "N", "N", "N"};
+    int movesMade = 0;
     int curPlayer = 0;
 public:
     string board[3][3] = { {"1", "2", "3"}, {"4", "5", "6"}, {"7", "8", "9"} };
@@ -46,23 +46,40 @@ public:
             }
         }
     }
-    bool checkWinner() {
-        
+    bool checkWinner(string p) {
         //check rows
-        
+        for (int i = 0; i < 3; i++) {
+            if ((board[i][0] == board[i][1]) && (board[i][0] == board[i][2])) {
+                cout << getCurPlayer() << " is the winner!" << endl;
+                return true;
+            }
+        }
         //check columns
+        for (int i = 0; i < 3; i++) {
+            if ((board[0][i] == board[1][i]) && (board[0][i] == board[2][i])) {
+                cout << getCurPlayer() << " is the winner!" << endl;
+                return true;
+            }
+    }
         //check diagonals
-        //make sure not all moves are taken
-        return true;
+        if ((board[0][0] == board[1][1]) && (board[0][0] == board[2][2])) {
+            cout << getCurPlayer() << " is the winner!" << endl;
+            return true;
+        }
+        if ((board[0][2] == board[1][1]) && (board[0][0] == board[2][0])) {
+            cout << getCurPlayer() << " is the winner!" << endl;
+            return true;
+        }
+        return false;
     }
 
     bool isTie() {
-        for (int i = 0; i < 9; i++) {
-            if (movesMade[i] == "N") {
-                return false;
-            }
+        if (movesMade == 9 && !checkWinner(getCurPlayer())) {
+            cout << "it's a tie!" << endl;
+            return true;
         }
-        return true;
+        return false;
+            
     }
     void swapPlayer() {
         curPlayer = (curPlayer + 1) % 2;
@@ -78,51 +95,58 @@ public:
     }
 
     bool isValidMove(string m) {
-        int move = stoi(m);
-        if ((move <= 9 && move >= 1) && movesMade[move] == "N") {
+        try {
+            int move = stoi(m);
+            if ((move <= 9 && move >= 1) && ((board[(move - 1) / 3][(move - 1) % 3]) != "X" || (board[(move - 1) / 3][(move - 1) % 3]) != "O")) {
+                return true;
+            }
+            else {
+                cout << "Invalid Move, try again..." << endl;
+                return false;
+            }
             
-            return true;
         }
-        else {
+        catch(string m){
+            cout << "not a number, try again..." << endl;
             return false;
         }
     }
     void placeMove(string m) {
+        //make row = (m - 1) % 3
+        //make col = (m- 1) /3
         int move = stoi(m);
-        movesMade[move] = "Y";
-        for (int i = 0; i < 3; i++) {
-            for (int j = 0; j < 2; j++) {
-                if (board[i][j] == m) {
-                    switch (curPlayer)
-                    {
-                    case 0:
-                        board[i][j] = "X";
-                        break;
-                    case 1:
-                        board[i][j] = "O";
-                        break;
-                    default:
-                        break;
-                    }
-                }
-            }
-        }
+        board[(move - 1) / 3][(move - 1) % 3] = getCurPlayer();
     }
 };
 
 int main() {
     //cout << "Hello World!\n";
     //left off at implementing a place move and adding a loop to main if move is invalid
+    /*
+    -------------TODO------------
+    >error handle non-number entered
+    >board not updating
+    >check if check winner works
+    >add something to enter when game is over
+    >computer player and player number select
+    >change place move to remove loop method
+    */
     while (true) {
         int mChoice = menu();
         switch (mChoice) {
         case 1: {
             Game* newGame = new Game();
             string move;
-            while ((newGame->checkWinner() == false) || !newGame->isTie()) {
+            while (!newGame->isTie()) {
                 newGame->printBoard();
+                do {
                     cout << newGame->getCurPlayer() << " select a spot" << endl;
                     cin >> move;
+                } while (!newGame->isValidMove(move));
+                newGame->placeMove(move);
+                if (newGame->checkWinner(newGame->getCurPlayer())) {
+                    break;
+                }
                 newGame->swapPlayer();
             }
             
